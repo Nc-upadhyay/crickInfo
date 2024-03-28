@@ -123,7 +123,10 @@ public class CricketServiceImpl implements CricketService {
 
     @Override
     public List<Match> getAllMatches() {
+        getMatchScores();
         logger.info("return Infor" + listOfMatch);
+        System.out.println("================ list is ==================");
+        System.out.println(listOfMatch);
         return listOfMatch;
     }
 
