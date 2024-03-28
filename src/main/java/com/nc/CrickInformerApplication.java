@@ -24,7 +24,7 @@ public class CrickInformerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        cricketService.getAllMatches();
+        cricketService.getAllMatches();
 //        cricketService.getCWC2023PointTable();
 //        cricketService.getLettestNews();
 //        cricketService.getPlayersRankData();

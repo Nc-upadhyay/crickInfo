@@ -123,7 +123,7 @@ public class CricketServiceImpl implements CricketService {
 
     @Override
     public List<Match> getAllMatches() {
-        logger.info("return Infor " + listOfMatch);
+        logger.info("return Infor" + listOfMatch);
         return listOfMatch;
     }
 
@@ -323,7 +323,7 @@ public class CricketServiceImpl implements CricketService {
 
     public void getDynamicImage() {
         logger.info("===== runing ===========");
-        final WebDriver driver=new ChromeDriver();
+        final WebDriver driver = new ChromeDriver();
 
     }
 }
