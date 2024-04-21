@@ -10,7 +10,6 @@ import java.util.Date;
 @NoArgsConstructor
 @Data
 public class Match {
-
     private int matchId;
 
     private String teamHeading;

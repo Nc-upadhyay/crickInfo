@@ -1,10 +1,14 @@
 package com.nc.controllers;
 
 
+import com.nc.models.GalleryModel;
 import com.nc.models.Match;
 import com.nc.services.CricketService;
+import com.nc.services.impl.CricketServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,9 +17,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/cricket")
+@CrossOrigin("*")
 public class CricketController {
 
+    @Autowired
     private CricketService cricketService;
+    @Autowired
+    private CricketServiceImpl implService;
 
     public CricketController(CricketService cricketService) {
         this.cricketService = cricketService;
@@ -63,8 +71,22 @@ public class CricketController {
         return new ResponseEntity<>(this.cricketService.getCWC2023PointTable(), HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/matches")
     public ResponseEntity<List<Match>> getAllMatches() {
         return new ResponseEntity<>(this.cricketService.getAllMatches(), HttpStatus.OK);
+    }
+
+    @GetMapping("/live-matches")
+    public ResponseEntity<List<Match>> getLiveMatches() {
+        return new ResponseEntity<>(this.cricketService.getLiveMatches(), HttpStatus.OK);
+    }
+
+    @GetMapping("/gallery")
+    public ResponseEntity<List<GalleryModel>> getGallery() {
+        return new ResponseEntity<>(implService.gallery, HttpStatus.OK);
+    }
+    @GetMapping("/world-test")
+    public ResponseEntity<?> getWorldTestChampionship() {
+        return new ResponseEntity<>(cricketService.getWorldTestChampionship(), HttpStatus.OK);
     }
 }

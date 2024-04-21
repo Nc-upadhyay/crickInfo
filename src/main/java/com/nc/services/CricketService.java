@@ -1,9 +1,7 @@
 package com.nc.services;
 
 
-import com.nc.models.Match;
-import com.nc.models.NewsStoryModel;
-import com.nc.models.PlayersRanking;
+import com.nc.models.*;
 
 import java.util.List;
 
@@ -31,4 +29,8 @@ public interface CricketService {
     List<PlayersRanking> getBowlerT20Rank();
 
     List<PlayersRanking> getBowlerODIRank();
+
+    List<Match> getLiveMatches();
+    List<GalleryModel> getGalleryImages();
+    List<List<String>> getWorldTestChampionship();
 }

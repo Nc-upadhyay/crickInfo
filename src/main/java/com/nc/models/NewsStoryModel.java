@@ -16,5 +16,7 @@ public class NewsStoryModel {
     private String heading;
     private String subHeading;
     private String time_ago;
+    private String link;
+
 
 }

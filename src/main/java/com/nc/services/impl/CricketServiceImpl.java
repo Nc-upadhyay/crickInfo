@@ -1,8 +1,6 @@
 package com.nc.services.impl;
 
-import com.nc.models.Match;
-import com.nc.models.NewsStoryModel;
-import com.nc.models.PlayersRanking;
+import com.nc.models.*;
 import com.nc.services.CricketService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,6 +10,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,20 +18,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CricketServiceImpl implements CricketService {
-    List<Match> listOfMatch = new ArrayList<>();
-    List<List<String>> pointTable = new ArrayList<>();
-    List<NewsStoryModel> newsList = new ArrayList<>();
-    List<PlayersRanking> playersRank = new ArrayList<>();
-    List<PlayersRanking> playersTestRank = new ArrayList<>();
-    List<PlayersRanking> playersODIRank = new ArrayList<>();
-    List<PlayersRanking> playersT20Rank = new ArrayList<>();
-    List<PlayersRanking> bowlerRank = new ArrayList<>();
-    List<PlayersRanking> bowlerTestRank = new ArrayList<>();
-    List<PlayersRanking> bowlerODIRank = new ArrayList<>();
-    List<PlayersRanking> bowlerT20Rank = new ArrayList<>();
+    public List<Match> listOfMatch = new ArrayList<>();
+    public List<List<String>> pointTable = new ArrayList<>();
+    public List<NewsStoryModel> newsList = new ArrayList<>();
+    public List<PlayersRanking> playersRank = new ArrayList<>();
+    public List<PlayersRanking> playersTestRank = new ArrayList<>();
+    public List<PlayersRanking> playersODIRank = new ArrayList<>();
+    public List<PlayersRanking> playersT20Rank = new ArrayList<>();
+    public List<PlayersRanking> bowlerRank = new ArrayList<>();
+    public List<PlayersRanking> bowlerTestRank = new ArrayList<>();
+    public List<PlayersRanking> bowlerODIRank = new ArrayList<>();
+    public List<PlayersRanking> bowlerT20Rank = new ArrayList<>();
+    public List<GalleryModel> gallery = new ArrayList<>();
+    public List<List<String>> worldTestChampionShip = new ArrayList<>();
     Logger logger = LoggerFactory.getLogger("Cricket::  ");
 
     @Override
@@ -68,7 +70,6 @@ public class CricketServiceImpl implements CricketService {
                 match1.setTextComplete(textComplete);
                 match1.setMatchStatus();
 
-
 //                update the match in database
                 listOfMatch.add(match1);
 
@@ -77,8 +78,6 @@ public class CricketServiceImpl implements CricketService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        logger.info("matches are :: " + listOfMatch);
-
     }
 
     @Override
@@ -86,8 +85,8 @@ public class CricketServiceImpl implements CricketService {
         return pointTable;
     }
 
-    public void getCWC2023PointTableFromWebSite() {
-        String tableURL = "https://www.cricbuzz.com/cricket-series/6732/icc-cricket-world-cup-2023/points-table";
+    public void getIPL2024PointTableFromWebSite() {
+        String tableURL = "https://www.cricbuzz.com/cricket-series/7607/indian-premier-league-2024/points-table";
         try {
             Document document = Jsoup.connect(tableURL).get();
             Elements table = document.select("table.cb-srs-pnts");
@@ -113,7 +112,6 @@ public class CricketServiceImpl implements CricketService {
                 }
 
             });
-
             System.out.println(pointTable);
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,10 +122,87 @@ public class CricketServiceImpl implements CricketService {
     @Override
     public List<Match> getAllMatches() {
         getMatchScores();
-        logger.info("return Infor" + listOfMatch);
-        System.out.println("================ list is ==================");
-        System.out.println(listOfMatch);
         return listOfMatch;
+    }
+
+    public List<GalleryModel> getGalleryImages() {
+        String url = "https://www.cricbuzz.com/cricket-photo-gallery";
+        try {
+            Document document = Jsoup.connect(url).get();
+            Elements elements = document
+                    .select("div.cb-pht-block.cb-gallery-pht-block.cb-col-33");
+
+
+            for (Element element : elements) {
+                String image = element.select("a").select("div.cb-thmb-dark.cb-thmb-hght")
+                        .select("img").attr("src");
+                String title = element.select("a").attr("title");
+                String time = element.select("a").select("div.cb-thmb-dark.cb-thmb-hght")
+                        .select("div.cb-cptn")
+                        .select("div.cb-pht-subtitle").text();
+                String link = "https://www.cricbuzz.com" + element.select("a").attr("href");
+                if (image.length() > 5)
+                    gallery.add(new GalleryModel(image.trim(), title, time, link));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("galler");
+        System.out.println(gallery);
+        return gallery;
+    }
+
+    @Override
+    public List<List<String>> getWorldTestChampionship() {
+
+        String url = "https://www.cricbuzz.com/cricket-stats/points-table/test/icc-world-test-championship";
+
+        try {
+            Document document = Jsoup.connect(url).get();
+            Elements table = document.select("table.cb-srs-pnts");
+            Elements tableHeads = table.select("thead>tr>*");
+            List<String> headers = new ArrayList<>();
+            tableHeads.forEach(element -> {
+                if (element.text().isEmpty()) {
+                    if (headers.size() < 2)
+                        headers.add("icon");
+                }
+                else
+                    headers.add(element.text());
+            });
+
+            worldTestChampionShip.add(headers);
+            Elements bodyTrs = table.select("tbody>*");
+            for (Element row : bodyTrs) {
+                List<String> body = new ArrayList<>();
+
+                Elements cols = row.select("td");
+                String teamRank = cols.get(0).text();
+                String countryIcon = cols.get(1).select("a").select("img").attr("src");
+                String teamName = cols.get(2).text();
+                String matchesPlayed = cols.get(3).text();
+                String wins = cols.get(4).text();
+                String losses = cols.get(5).text();
+                String draws = cols.get(6).text();
+                String nr = cols.get(7).text();
+                String points = cols.get(8).text();
+                String pct = cols.get(9).text();
+                body.add(teamRank);
+                body.add(countryIcon);
+                body.add(teamName);
+                body.add(matchesPlayed);
+                body.add(wins);
+                body.add(losses);
+                body.add(draws);
+                body.add(nr);
+                body.add(points);
+                body.add(pct);
+                worldTestChampionShip.add(body);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return worldTestChampionShip;
     }
 
     @Override
@@ -135,9 +210,13 @@ public class CricketServiceImpl implements CricketService {
         String url = "https://www.cricbuzz.com/cricket-news";
         try {
             Document document = Jsoup.connect(url).get();
-            Elements elements = document.select("div.cb-col.cb-lst-itm-lg");
+            Elements elements = document.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg");
+
+            System.out.println("element size is news " + elements.size());
             for (Element element : elements) {
-                String title = element.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg").select("div.cb-col-67.cb-nws-lst-rt.cb-col.cb-col-text-container").select("div.cb-nws-time").text();
+                String title = element.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg")
+                        .select("div.cb-col-67.cb-nws-lst-rt.cb-col.cb-col-text-container")
+                        .select("div.cb-nws-time").text();
                 String[] typeArr = title.split("•");
                 String type = "";
                 if (typeArr.length > 1) {
@@ -147,14 +226,8 @@ public class CricketServiceImpl implements CricketService {
                     title = "Something goes wrong";
                     type = "something goes wrong";
                 }
-                String imageUrl = elements.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg").select("div.cb-col.cb-pos-rel meta").text();
-//                if (elements.size() >= 3) {
-//                    Element thirdMeta = elements.get(2); // Index 2 for the third meta tag (0-based indexing)
-//                    String content = thirdMeta.attr("content");
-//                    System.out.println("-> " + thirdMeta.text());
-//                } else {
-//                    System.out.println("-> Third meta content not found");
-//                }
+                String imageUrl = element.select("div.cb-col.cb-col-33.cb-pos-rel").select("a").select("img").attr("src");
+                String link = "https://www.cricbuzz.com/" + element.select("div.cb-col.cb-col-33.cb-pos-rel").select("a").attr("href");
                 String heading = element.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg").select("div.cb-col-67.cb-nws-lst-rt.cb-col.cb-col-text-container").select("h2.cb-nws-hdln.line-ht24").select("a").text();
                 String subHeading = element.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg").select("div.cb-col-67.cb-nws-lst-rt.cb-col.cb-col-text-container").select("div.cb-nws-intr").text();
                 String timing = element.select("div.cb-col.cb-col-100.cb-lst-itm.cb-pos-rel.cb-lst-itm-lg").select("div.cb-col-67.cb-nws-lst-rt.cb-col.cb-col-text-container").select("div").select("span.cb-nws-time").text();
@@ -166,8 +239,7 @@ public class CricketServiceImpl implements CricketService {
                 newsModel.setSubHeading(subHeading);
                 newsModel.setTime_ago(timing);
                 newsModel.setType(type);
-
-
+                newsModel.setLink(link);
                 newsList.add(newsModel);
             }
         } catch (Exception e) {
@@ -315,6 +387,11 @@ public class CricketServiceImpl implements CricketService {
     }
 
     @Override
+    public List<Match> getLiveMatches() {
+        return listOfMatch;
+    }
+
+    @Override
     public List<NewsStoryModel> getNews() {
         return newsList;
     }
@@ -328,5 +405,11 @@ public class CricketServiceImpl implements CricketService {
         logger.info("===== runing ===========");
         final WebDriver driver = new ChromeDriver();
 
+    }
+
+    @Scheduled(initialDelay = 1000, fixedDelay = 5000)
+    public void refreshLiveData() {
+        listOfMatch.clear();
+        getAllMatches();
     }
 }
